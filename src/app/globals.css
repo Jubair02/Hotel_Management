@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  /* Grand Tulip palette — tea-garden pine, marigold brass, warm neutrals */
+  --color-pine-950: #0f221e;
+  --color-pine-900: #16302b;
+  --color-pine-800: #1d4a43;
+  --color-pine-700: #266058;
+  --color-pine-600: #33796f;
+  --color-pine-100: #dce7e2;
+  --color-pine-50: #eef3f0;
+
+  --color-marigold-600: #c98a1b;
+  --color-marigold-500: #e3a32c;
+  --color-marigold-400: #ecb95c;
+  --color-marigold-100: #f9edd2;
+  --color-marigold-50: #fdf7e9;
+
+  --color-sand-50: #f7f6f2;
+  --color-sand-100: #efede6;
+  --color-sand-200: #e5e3dc;
+  --color-sand-300: #d6d3c8;
+
+  --color-ink-900: #1f2723;
+  --color-ink-600: #5c6b66;
+  --color-ink-400: #8a968f;
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-sand-50);
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-marigold-100);
+  color: var(--color-pine-900);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
