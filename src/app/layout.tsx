@@ -49,7 +49,7 @@ export default function RootLayout({
                 12 Lake Drive Road, Gulshan, Dhaka 1212 · +880 1700 000000
               </p>
             </div>
-            <div className="text-xs text-pine-100/50">
+            <div className="text-xs text-pine-100/50 sm:text-right">
               <p>Front desk open 24 hours · reception@grandtulip.com</p>
               <p className="mt-2">
                 <a
@@ -64,6 +64,17 @@ export default function RootLayout({
                   className="underline underline-offset-4 hover:text-pine-100"
                 >
                   Terms of stay
+                </a>
+              </p>
+              <p className="mt-2">
+                Built by{" "}
+                <a
+                  href="https://jhossain.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-marigold-400 underline underline-offset-4 transition-colors hover:text-marigold-500"
+                >
+                  Jubair Hossain
                 </a>
               </p>
             </div>
