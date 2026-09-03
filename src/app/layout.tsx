@@ -42,31 +42,41 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="border-t border-sand-200 bg-pine-950 text-pine-100">
-          <div className="mx-auto max-w-6xl px-6 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div>
-              <p className="font-display text-xl text-white">Grand Tulip</p>
-              <p className="mt-1 text-sm text-pine-100/70">
-                12 Lake Drive Road, Gulshan, Dhaka 1212 · +880 1700 000000
-              </p>
+          <div className="mx-auto max-w-6xl px-6 py-12">
+            {/* Main row: wordmark + address on the left, hours on the right */}
+            <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="font-display text-2xl text-white">Grand Tulip</p>
+                <p className="mt-3 text-sm leading-relaxed text-pine-100/70">
+                  12 Lake Drive Road, Gulshan, Dhaka 1212
+                </p>
+                <p className="mt-1 text-sm text-pine-100/70">
+                  +880 1700 000000
+                </p>
+              </div>
+              <div className="text-sm leading-relaxed text-pine-100/70 sm:text-right">
+                <p>Front desk open 24 hours</p>
+                <p className="mt-1">reception@grandtulip.com</p>
+              </div>
             </div>
-            <div className="text-xs text-pine-100/50 sm:text-right">
-              <p>Front desk open 24 hours · reception@grandtulip.com</p>
-              <p className="mt-2">
+
+            {/* Bottom bar: legal on the left, credit on the right */}
+            <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-pine-100/50 sm:flex-row sm:items-center sm:justify-between">
+              <p className="space-x-4">
                 <a
                   href="/privacy"
-                  className="underline underline-offset-4 hover:text-pine-100"
+                  className="underline underline-offset-4 transition-colors hover:text-pine-100"
                 >
                   Privacy policy
                 </a>
-                <span aria-hidden> · </span>
                 <a
                   href="/terms"
-                  className="underline underline-offset-4 hover:text-pine-100"
+                  className="underline underline-offset-4 transition-colors hover:text-pine-100"
                 >
                   Terms of stay
                 </a>
               </p>
-              <p className="mt-2">
+              <p>
                 Built by{" "}
                 <a
                   href="https://jhossain.vercel.app/"
