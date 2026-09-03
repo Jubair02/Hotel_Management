@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { SearchForm } from "@/components/SearchForm";
 import { RoomCard } from "@/components/RoomCard";
 import Link from "next/link";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +36,13 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="relative bg-pine-950">
         <div className="absolute inset-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=2000&q=80"
             alt=""
-            className="h-full w-full object-cover opacity-40"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-40"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-pine-950 via-pine-950/60 to-pine-950/30" />
         </div>
@@ -121,7 +124,7 @@ export default async function HomePage() {
       <section className="border-t border-sand-200 bg-sand-100">
         <div className="mx-auto max-w-6xl px-6 py-16 grid gap-10 lg:grid-cols-2 items-center">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-400">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-600">
               Getting here
             </p>
             <h2 className="mt-1 font-display text-3xl text-pine-900">
@@ -136,12 +139,13 @@ export default async function HomePage() {
               +880 1700 000000 · reception@grandtulip.com
             </p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-sand-200">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative h-64 overflow-hidden rounded-xl border border-sand-200 lg:h-80">
+            <Image
               src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1400&q=80"
               alt="The lakeside terrace at Grand Tulip"
-              className="h-64 w-full object-cover lg:h-80"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
             />
           </div>
         </div>

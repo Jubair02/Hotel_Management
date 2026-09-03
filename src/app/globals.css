@@ -10,6 +10,7 @@
   --color-pine-100: #dce7e2;
   --color-pine-50: #eef3f0;
 
+  --color-marigold-700: #8a5a00; /* text on light surfaces — 5.9:1 on white, 5.5:1 on marigold-50 */
   --color-marigold-600: #c98a1b;
   --color-marigold-500: #e3a32c;
   --color-marigold-400: #ecb95c;
@@ -22,8 +23,8 @@
   --color-sand-300: #d6d3c8;
 
   --color-ink-900: #1f2723;
-  --color-ink-600: #5c6b66;
-  --color-ink-400: #8a968f;
+  --color-ink-600: #4b5853; /* body/secondary — 7.5:1 on white */
+  --color-ink-400: #66726c; /* muted labels — 5.0:1 on white, 4.6:1 on sand-50 (AA) */
 
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-body: var(--font-karla), ui-sans-serif, system-ui, sans-serif;

@@ -30,5 +30,8 @@ export const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/rooms", label: "Rooms" },
   { href: "/admin/bookings", label: "Bookings" },
+  { href: "/admin/payments", label: "Payments" },
+  { href: "/admin/guests", label: "Guests" },
+  { href: "/admin/reports", label: "Reports" },
   { href: "/admin/staff", label: "Staff" },
 ];

@@ -46,6 +46,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // A brand-new room has no guest in it; OCCUPIED only ever comes from
+  // check-in.
+  if (parsed.data.status === "OCCUPIED") {
+    return NextResponse.json(
+      { error: "A new room cannot start as OCCUPIED — rooms become occupied through check-in" },
+      { status: 400 }
+    );
+  }
+
   const existing = await prisma.room.findUnique({
     where: { roomNumber: parsed.data.roomNumber },
   });

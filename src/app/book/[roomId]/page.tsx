@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { BookingForm } from "@/components/BookingForm";
@@ -65,12 +66,15 @@ export default async function BookPage({ params, searchParams }: Props) {
             Booking summary
           </h2>
           {room.images[0] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={room.images[0]}
-              alt={room.name}
-              className="mb-4 aspect-[16/9] w-full rounded-lg object-cover"
-            />
+            <div className="relative mb-4 aspect-[16/9] overflow-hidden rounded-lg">
+              <Image
+                src={room.images[0]}
+                alt={room.name}
+                fill
+                sizes="(max-width: 1024px) 100vw, 33vw"
+                className="object-cover"
+              />
+            </div>
           )}
           <div className="flex items-center justify-between">
             <p className="font-display text-lg text-pine-900">{room.name}</p>

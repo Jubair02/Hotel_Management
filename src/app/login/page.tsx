@@ -27,7 +27,7 @@ export default async function LoginPage({
       </p>
       <h1 className="mt-1 font-display text-3xl text-pine-900">Sign in</h1>
       {showRevoked && (
-        <p className="mt-4 rounded-md border border-marigold-100 bg-marigold-50 px-4 py-3 text-sm text-marigold-600">
+        <p className="mt-4 rounded-md border border-marigold-100 bg-marigold-50 px-4 py-3 text-sm text-marigold-700">
           Your account access has changed, so you were signed out. Sign in
           again to continue.
         </p>
@@ -35,11 +35,14 @@ export default async function LoginPage({
       <div className="mt-8 rounded-xl border border-sand-200 bg-white p-6">
         <AuthForm mode="login" />
       </div>
-      <p className="mt-4 text-center text-xs text-ink-400">
-        Demo accounts: admin@grandtulip.com · reception@grandtulip.com ·
-        housekeeping@grandtulip.com · guest@example.com — all use{" "}
-        <span className="font-mono">password123</span>
-      </p>
+      {process.env.NODE_ENV === "development" && (
+        <p className="mt-4 text-center text-xs text-ink-400">
+          Demo accounts (dev only): admin@grandtulip.com ·
+          reception@grandtulip.com · housekeeping@grandtulip.com ·
+          guest@example.com — all use{" "}
+          <span className="font-mono">password123</span>
+        </p>
+      )}
     </div>
   );
 }

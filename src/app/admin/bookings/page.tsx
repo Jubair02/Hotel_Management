@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { KeyTag } from "@/components/KeyTag";
 import { ActionButton } from "@/components/ActionButton";
 import { formatMoney, formatDate } from "@/lib/format";
+import { displayPaymentStatus } from "@/lib/payments";
 
 export const metadata = { title: "Bookings · Admin" };
 
@@ -144,13 +145,7 @@ export default async function AdminBookingsPage({
                     <StatusBadge status={b.status} />
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge
-                      status={
-                        paid
-                          ? "PAID"
-                          : pendingPayment?.status ?? b.payments[0]?.status ?? "PENDING"
-                      }
-                    />
+                    <StatusBadge status={displayPaymentStatus(b.payments)} />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap justify-end gap-2">

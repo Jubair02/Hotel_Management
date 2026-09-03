@@ -160,7 +160,7 @@ export function PasswordForm() {
           <input
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={next}
             onChange={(e) => setNext(e.target.value)}
             className={inputCls}
@@ -172,7 +172,7 @@ export function PasswordForm() {
           <input
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             className={inputCls}

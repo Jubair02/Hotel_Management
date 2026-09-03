@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/guard";
 import { updateRoomSchema } from "@/lib/validation";
+import { roomStatusConflict } from "@/lib/room-status";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -30,32 +31,62 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     );
   }
 
-  const room = await prisma.room.update({ where: { id }, data: parsed.data })
-    .catch(() => null);
-  if (!room) {
+  const current = await prisma.room.findUnique({
+    where: { id },
+    select: { status: true, roomNumber: true },
+  });
+  if (!current) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
+
+  if (parsed.data.status && parsed.data.status !== current.status) {
+    const conflict = await roomStatusConflict(id, current.roomNumber, parsed.data.status);
+    if (conflict) {
+      return NextResponse.json({ error: conflict }, { status: 409 });
+    }
+  }
+
+  if (parsed.data.roomNumber && parsed.data.roomNumber !== current.roomNumber) {
+    const taken = await prisma.room.findUnique({
+      where: { roomNumber: parsed.data.roomNumber },
+      select: { id: true },
+    });
+    if (taken) {
+      return NextResponse.json(
+        { error: `Room ${parsed.data.roomNumber} already exists` },
+        { status: 409 }
+      );
+    }
+  }
+
+  const room = await prisma.room.update({ where: { id }, data: parsed.data });
   return NextResponse.json({ room });
 }
 
-/** DELETE /api/rooms/:id — delete a room with no bookings (ADMIN). */
+/** DELETE /api/rooms/:id — delete a room with no history (ADMIN). */
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const { error } = await requireAuth(["ADMIN"]);
   if (error) return error;
 
   const { id } = await params;
-  const bookingCount = await prisma.booking.count({ where: { roomId: id } });
-  if (bookingCount > 0) {
+  const [bookingCount, taskCount] = await Promise.all([
+    prisma.booking.count({ where: { roomId: id } }),
+    prisma.housekeepingTask.count({ where: { roomId: id } }),
+  ]);
+  // History is never silently destroyed — bookings and housekeeping
+  // records both block deletion.
+  if (bookingCount > 0 || taskCount > 0) {
     return NextResponse.json(
       {
         error:
-          "Room has booking history and cannot be deleted. Set its status to MAINTENANCE instead.",
+          bookingCount > 0
+            ? "Room has booking history and cannot be deleted. Set its status to MAINTENANCE instead."
+            : "Room has housekeeping history and cannot be deleted. Set its status to MAINTENANCE instead.",
       },
       { status: 409 }
     );
   }
 
-  await prisma.housekeepingTask.deleteMany({ where: { roomId: id } });
   const room = await prisma.room.delete({ where: { id } }).catch(() => null);
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });

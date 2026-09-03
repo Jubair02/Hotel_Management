@@ -40,8 +40,15 @@ Open http://localhost:3000.
 1. **Guest** searches availability on the home page, picks a room, books it, and pays — either through the mock online gateway (an SSLCOMMERZ-shaped flow) or "pay at hotel."
 2. **Online payment** is only trusted after the gateway **IPN callback** is verified server-side (`/api/payments/:id/ipn`) — frontend "success" never confirms a booking. A booking holds at most **one pending payment** (abandoning the gateway and retrying resumes it), and once a booking has a `PAID` payment no other payment on it can be marked paid.
 3. **Receptionist** sees today's arrivals, takes cash payments, and checks guests in → room becomes `OCCUPIED`. Check-in is refused before the booking's check-in date unless the receptionist explicitly uses **Early check-in**.
+3b. A guest who started an online payment and left the gateway is offered **Continue to payment** on return, so the same pending record is resumed rather than a new one started.
 4. **Check-out** requires a settled payment → booking `CHECKED_OUT`, room `CLEANING`, and a housekeeping task is created automatically.
 5. **Housekeeping** starts the task, marks the room clean (→ `AVAILABLE`), or reports a maintenance issue (→ `MAINTENANCE`, out of the bookable pool).
+
+## Admin pages
+
+`/admin` dashboard · `/admin/rooms` · `/admin/bookings` · `/admin/payments` (ledger with status/method/date filters and totals) · `/admin/guests` (guest directory with stays, spend, in-house/upcoming) · `/admin/reports` (nightly occupancy, daily revenue, bookings by status, room-type demand — server-rendered SVG, with a table view) · `/admin/staff`.
+
+Every route segment ships a `loading.tsx` skeleton, so navigation paints immediately while the server renders.
 
 ## Double-booking prevention
 
@@ -60,7 +67,9 @@ Check-out day is exclusive, so back-to-back stays are allowed. Booking creation 
 - Public registration always creates `GUEST`. Staff accounts are created, and any user's role changed, from **Admin → Staff** (`/admin/staff`, backed by `/api/users`). Tokens are **revocable**: `requireAuth()` (API) and each signed-in section's layout (pages) re-check the account against the database, and a token whose role no longer matches — or whose account is gone — is rejected with a 401 and the cookie cleared. Changing someone's role therefore signs them out everywhere at once.
 - `?next=` after sign-in only accepts same-site paths (`safeNext()`), so a crafted login link cannot redirect off-site.
 - List endpoints validate their query strings (`?status=`, `?type=`, `?date=`) with the same zod schemas as request bodies — an unknown value is a 400, not a 500.
-- Passwords hashed with bcrypt.
+- Passwords hashed with bcrypt; minimum 8 characters.
+- **Sign-in throttling** (`src/lib/rate-limit.ts`): 5 failed attempts per account or 30 per IP in 15 minutes returns `429` with `Retry-After`; registration is capped at 10 per IP per hour. The limiter is in-process — swap the Map for Redis when running more than one instance.
+- **Room status is workflow-owned.** Hand-editing a room to a status that contradicts the record (AVAILABLE while a guest is checked in, OCCUPIED with nobody in house, AVAILABLE with an open housekeeping task) is refused with a 409; the edit form explains the lock up front.
 
 ## API surface
 

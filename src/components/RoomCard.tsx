@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { KeyTag } from "@/components/KeyTag";
 import { formatMoney } from "@/lib/format";
 
@@ -28,11 +29,12 @@ export function RoomCard({
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-sand-100">
         {room.images[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={room.images[0]}
             alt={room.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-ink-400 text-sm">

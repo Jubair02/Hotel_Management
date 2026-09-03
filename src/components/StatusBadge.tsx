@@ -1,6 +1,6 @@
 const TONES = {
   green: "bg-pine-50 text-pine-800 border-pine-100",
-  amber: "bg-marigold-50 text-marigold-600 border-marigold-100",
+  amber: "bg-marigold-50 text-marigold-700 border-marigold-100",
   red: "bg-red-50 text-red-700 border-red-100",
   blue: "bg-sky-50 text-sky-800 border-sky-100",
   gray: "bg-sand-100 text-ink-600 border-sand-200",

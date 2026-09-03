@@ -128,7 +128,7 @@ export function StaffForm() {
         <input
           type="text"
           required
-          minLength={6}
+          minLength={8}
           value={form.password}
           onChange={set("password")}
           className={`${inputCls} font-mono`}

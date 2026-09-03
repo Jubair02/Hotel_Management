@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { KeyTag } from "@/components/KeyTag";
 import { SectionNav } from "@/components/SectionNav";
+import { displayPaymentStatus } from "@/lib/payments";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { formatMoney, formatDate } from "@/lib/format";
@@ -96,13 +97,7 @@ export default async function GuestDashboard() {
                       </p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <StatusBadge status={b.status} />
-                        <StatusBadge
-                          status={
-                            paid
-                              ? "PAID"
-                              : b.payments[0]?.status ?? "PENDING"
-                          }
-                        />
+                        <StatusBadge status={displayPaymentStatus(b.payments)} />
                       </div>
                     </div>
                   </div>

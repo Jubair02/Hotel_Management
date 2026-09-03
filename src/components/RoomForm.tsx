@@ -30,9 +30,17 @@ export type RoomFormValues = {
 export function RoomForm({
   roomId,
   initial,
+  statusLock,
 }: {
   roomId?: string;
   initial?: RoomFormValues;
+  /**
+   * Set by the edit page when the room's status is dictated by the
+   * workflow (guest in house, open housekeeping task). `locked` disables
+   * the select entirely; otherwise the note is advisory and the API is
+   * the final arbiter.
+   */
+  statusLock?: { locked: boolean; note: string };
 }) {
   const router = useRouter();
   const [form, setForm] = useState<RoomFormValues>(
@@ -163,14 +171,26 @@ export function RoomForm({
           <select
             value={form.status}
             onChange={set("status")}
-            className={inputCls}
+            disabled={statusLock?.locked}
+            aria-describedby={statusLock ? "room-status-note" : undefined}
+            className={`${inputCls} disabled:cursor-not-allowed disabled:bg-sand-50 disabled:text-ink-400`}
           >
             {ROOM_STATUSES.map((s) => (
-              <option key={s}>{s}</option>
+              <option key={s} value={s} disabled={s === "OCCUPIED" && !statusLock?.locked}>
+                {s}{s === "OCCUPIED" && !statusLock?.locked ? " (via check-in)" : ""}
+              </option>
             ))}
           </select>
         </label>
       </div>
+      {statusLock && (
+        <p
+          id="room-status-note"
+          className="rounded-md border border-marigold-100 bg-marigold-50 px-3 py-2 text-sm text-marigold-700"
+        >
+          {statusLock.note}
+        </p>
+      )}
 
       <label className="block">
         <span className="mb-1 block text-sm font-medium">Description</span>

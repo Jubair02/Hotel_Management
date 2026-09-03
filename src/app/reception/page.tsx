@@ -76,7 +76,7 @@ export default async function ReceptionPage({
                 ` · arrived ${formatDateTime(b.actualCheckIn)}`}
             </p>
             {b.notes && (
-              <p className="mt-1 text-xs text-marigold-600">✱ {b.notes}</p>
+              <p className="mt-1 text-xs text-marigold-700">✱ {b.notes}</p>
             )}
           </div>
         </div>

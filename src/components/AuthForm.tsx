@@ -88,7 +88,7 @@ function AuthFormInner({ mode }: { mode: "login" | "register" }) {
         <input
           type="password"
           required
-          minLength={mode === "register" ? 6 : 1}
+          minLength={mode === "register" ? 8 : 1}
           value={form.password}
           onChange={set("password")}
           className={inputCls}

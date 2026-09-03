@@ -4,8 +4,29 @@ import { prisma } from "@/lib/db";
 import { registerSchema } from "@/lib/validation";
 import { signSession } from "@/lib/auth";
 import { setSessionCookie } from "@/lib/session";
+import {
+  checkLimit,
+  clientIp,
+  recordAttempt,
+  retryMessage,
+} from "@/lib/rate-limit";
+
+// Account creation is throttled per IP so the sign-up form cannot be used
+// to spam the users table or probe which emails exist.
+const REGISTER_LIMIT = 10;
+const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(req: NextRequest) {
+  const ipKey = `register:ip:${clientIp(req)}`;
+  const status = checkLimit(ipKey, REGISTER_LIMIT);
+  if (status.limited) {
+    return NextResponse.json(
+      { error: retryMessage(status.retryAfterSec), code: "RATE_LIMITED" },
+      { status: 429, headers: { "Retry-After": String(status.retryAfterSec) } }
+    );
+  }
+  recordAttempt(ipKey, REGISTER_WINDOW_MS);
+
   const body = await req.json().catch(() => null);
   const parsed = registerSchema.safeParse(body);
   if (!parsed.success) {

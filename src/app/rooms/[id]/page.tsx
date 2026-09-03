@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { KeyTag } from "@/components/KeyTag";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -62,16 +63,18 @@ export default async function RoomDetailsPage({ params, searchParams }: Props) {
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         {/* Gallery + description */}
         <div>
-          <div className="overflow-hidden rounded-xl border border-sand-200 bg-sand-100">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-sand-200 bg-sand-100">
             {room.images[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={room.images[0]}
                 alt={room.name}
-                className="aspect-[16/10] w-full object-cover"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover"
               />
             ) : (
-              <div className="flex aspect-[16/10] items-center justify-center text-ink-400">
+              <div className="flex h-full items-center justify-center text-ink-400">
                 No photo yet
               </div>
             )}
@@ -79,13 +82,18 @@ export default async function RoomDetailsPage({ params, searchParams }: Props) {
           {room.images.length > 1 && (
             <div className="mt-3 grid grid-cols-3 gap-3">
               {room.images.slice(1, 4).map((src) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <div
                   key={src}
-                  src={src}
-                  alt=""
-                  className="aspect-[4/3] w-full rounded-lg border border-sand-200 object-cover"
-                />
+                  className="relative aspect-[4/3] overflow-hidden rounded-lg border border-sand-200"
+                >
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    sizes="(max-width: 1024px) 33vw, 20vw"
+                    className="object-cover"
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -178,6 +186,7 @@ export default async function RoomDetailsPage({ params, searchParams }: Props) {
             </p>
             <SearchForm
               compact
+              basePath={`/rooms/${room.id}`}
               defaults={{
                 checkIn: sp.checkIn,
                 checkOut: sp.checkOut,

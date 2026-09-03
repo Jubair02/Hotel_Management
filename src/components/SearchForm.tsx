@@ -15,9 +15,12 @@ const inputCls =
 type Props = {
   defaults?: { checkIn?: string; checkOut?: string; guests?: string };
   compact?: boolean;
+  /** Page to submit to — defaults to the listing; a room page passes its
+      own path so changing dates keeps the guest on that room. */
+  basePath?: string;
 };
 
-export function SearchForm({ defaults, compact }: Props) {
+export function SearchForm({ defaults, compact, basePath = "/rooms" }: Props) {
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -36,7 +39,7 @@ export function SearchForm({ defaults, compact }: Props) {
     }
     setError(null);
     router.push(
-      `/rooms?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`
+      `${basePath}?checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`
     );
   }
 

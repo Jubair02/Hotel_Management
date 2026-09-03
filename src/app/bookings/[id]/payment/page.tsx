@@ -6,7 +6,7 @@ import { roleHome } from "@/lib/roles";
 import { PaymentOptions } from "@/components/PaymentOptions";
 import { KeyTag } from "@/components/KeyTag";
 import { StatusBadge } from "@/components/StatusBadge";
-import { formatMoney, formatDate } from "@/lib/format";
+import { formatMoney, formatDate, formatDateTime } from "@/lib/format";
 
 export const metadata = { title: "Payment" };
 
@@ -32,6 +32,11 @@ export default async function PaymentPage({ params }: Props) {
 
   const pendingCash = booking.payments.find(
     (p) => p.provider === "CASH" && p.status === "PENDING"
+  );
+  // An online payment the guest started but didn't finish — offer to pick
+  // it back up rather than presenting the menu as if nothing happened.
+  const pendingOnline = booking.payments.find(
+    (p) => p.provider !== "CASH" && p.status === "PENDING" && p.transactionId
   );
 
   return (
@@ -72,7 +77,7 @@ export default async function PaymentPage({ params }: Props) {
       <div className="mt-6 rounded-xl border border-sand-200 bg-white p-6">
         {pendingCash ? (
           <div className="space-y-4">
-            <p className="rounded-md border border-marigold-100 bg-marigold-50 px-4 py-3 text-sm text-marigold-600">
+            <p className="rounded-md border border-marigold-100 bg-marigold-50 px-4 py-3 text-sm text-marigold-700">
               Your booking is confirmed with payment due at the front desk.
             </p>
             <Link
@@ -81,6 +86,30 @@ export default async function PaymentPage({ params }: Props) {
             >
               View confirmation
             </Link>
+          </div>
+        ) : pendingOnline ? (
+          <div className="space-y-5">
+            <div className="rounded-md border border-marigold-100 bg-marigold-50 px-4 py-3 text-sm text-marigold-700">
+              <p className="font-medium">You have a payment in progress.</p>
+              <p className="mt-1">
+                Started {formatDateTime(pendingOnline.createdAt)} · ref{" "}
+                <span className="font-mono text-xs">{pendingOnline.transactionId}</span>
+              </p>
+            </div>
+            <Link
+              href={`/payment/${pendingOnline.id}/gateway`}
+              className="block rounded-md bg-pine-800 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-pine-700"
+            >
+              Continue to payment
+            </Link>
+            <details className="group">
+              <summary className="cursor-pointer text-center text-sm text-ink-600 underline underline-offset-4 hover:text-pine-800">
+                Pay a different way
+              </summary>
+              <div className="mt-4">
+                <PaymentOptions bookingId={booking.id} />
+              </div>
+            </details>
           </div>
         ) : (
           <PaymentOptions bookingId={booking.id} />

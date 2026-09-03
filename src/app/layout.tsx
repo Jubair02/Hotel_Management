@@ -49,9 +49,24 @@ export default function RootLayout({
                 12 Lake Drive Road, Gulshan, Dhaka 1212 · +880 1700 000000
               </p>
             </div>
-            <p className="text-xs text-pine-100/50">
-              Front desk open 24 hours · reception@grandtulip.com
-            </p>
+            <div className="text-xs text-pine-100/50">
+              <p>Front desk open 24 hours · reception@grandtulip.com</p>
+              <p className="mt-2">
+                <a
+                  href="/privacy"
+                  className="underline underline-offset-4 hover:text-pine-100"
+                >
+                  Privacy policy
+                </a>
+                <span aria-hidden> · </span>
+                <a
+                  href="/terms"
+                  className="underline underline-offset-4 hover:text-pine-100"
+                >
+                  Terms of stay
+                </a>
+              </p>
+            </div>
           </div>
         </footer>
       </body>
