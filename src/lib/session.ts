@@ -19,15 +19,17 @@ export type VerifiedSession =
   | { session: SessionPayload; revoked: false }
   /** No cookie / bad signature. */
   | { session: null; revoked: false }
-  /** Token was valid but the account is gone or its role changed since. */
+  /** Token was valid but the account is gone, suspended, or has changed. */
   | { session: null; revoked: true };
 
 /**
- * Session + live database check. A JWT carries the role it was issued
- * with, so on its own it cannot notice that an admin demoted (or deleted)
- * the user during the token's 7-day life. Here the token is only honoured
- * while the account still exists with the SAME role — any change revokes
- * every outstanding token for that user and forces a fresh sign-in.
+ * Session + live database check. A JWT carries the identity it was issued
+ * with, so on its own it cannot notice that an admin demoted, renamed the
+ * login of, suspended, or deleted the user during the token's 7-day life.
+ * Here the token is only honoured while the account still exists, is
+ * ACTIVE, and still carries the same role and email — any of those
+ * changing revokes every outstanding token for that user at once, which is
+ * what makes "suspend this account" take effect immediately.
  */
 export async function getVerifiedSession(): Promise<VerifiedSession> {
   const session = await getSession();
@@ -35,9 +37,14 @@ export async function getVerifiedSession(): Promise<VerifiedSession> {
 
   const user = await prisma.user.findUnique({
     where: { id: session.sub },
-    select: { role: true },
+    select: { role: true, email: true, status: true },
   });
-  if (!user || user.role !== session.role) {
+  if (
+    !user ||
+    user.status !== "ACTIVE" ||
+    user.role !== session.role ||
+    user.email !== session.email
+  ) {
     return { session: null, revoked: true };
   }
   return { session, revoked: false };

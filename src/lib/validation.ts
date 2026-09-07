@@ -2,7 +2,11 @@ import { z } from "zod";
 
 export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
-  email: z.string().email("Invalid email address"),
+  // Normalised the same way sign-in normalises it — see emailField below.
+  email: z.preprocess(
+    (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+    z.string().email("Invalid email address")
+  ),
   password: z.string().min(8, "Password must be at least 8 characters").max(100),
   phone: z.string().min(6).max(20).optional().or(z.literal("")),
 });
@@ -81,19 +85,54 @@ export const payBookingSchema = z.object({
 
 export const staffRoleValues = ["ADMIN", "RECEPTIONIST", "HOUSEKEEPING"] as const;
 export const roleValues = ["ADMIN", "GUEST", "RECEPTIONIST", "HOUSEKEEPING"] as const;
+export const userStatusValues = ["ACTIVE", "SUSPENDED"] as const;
+
+/**
+ * Sign-in looks the address up lowercased, so every write path has to
+ * store it that way — otherwise an account saved as "Rafiq@…" could never
+ * sign in again.
+ */
+export const emailField = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+  z.string().email("Invalid email address")
+);
+
+const nameField = z
+  .string()
+  .min(2, "Name must be at least 2 characters")
+  .max(100);
+const passwordField = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(100);
+const phoneField = z.string().min(6).max(20).or(z.literal(""));
 
 /** Admin creates a staff account — role is chosen explicitly, never GUEST. */
 export const createStaffSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(100),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters").max(100),
-  phone: z.string().min(6).max(20).optional().or(z.literal("")),
+  name: nameField,
+  email: emailField,
+  password: passwordField,
+  phone: phoneField.optional(),
   role: z.enum(staffRoleValues, { message: "Choose a staff role" }),
 });
 
 /** Admin changes any user's role (promote a guest, demote a staffer). */
 export const updateUserRoleSchema = z.object({
   role: z.enum(roleValues, { message: "Invalid role" }),
+});
+
+/**
+ * Admin edits any account. Every field is optional — send only what
+ * changes. `phone: ""` clears the number; an omitted or empty `password`
+ * leaves the current one alone.
+ */
+export const updateUserSchema = z.object({
+  name: nameField.optional(),
+  email: emailField.optional(),
+  phone: phoneField.optional(),
+  role: z.enum(roleValues, { message: "Invalid role" }).optional(),
+  status: z.enum(userStatusValues, { message: "Invalid account status" }).optional(),
+  password: passwordField.or(z.literal("")).optional(),
 });
 
 export const bookingStatusValues = [

@@ -69,6 +69,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Only told AFTER the password checks out, so this cannot be used to
+  // discover which addresses have accounts.
+  if (user.status !== "ACTIVE") {
+    resetLimit(emailKey);
+    return NextResponse.json(
+      {
+        error:
+          "This account has been suspended. Contact a hotel administrator to restore access.",
+        code: "ACCOUNT_SUSPENDED",
+      },
+      { status: 403 }
+    );
+  }
+
   resetLimit(emailKey);
 
   const token = await signSession({

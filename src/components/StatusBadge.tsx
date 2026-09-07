@@ -30,6 +30,9 @@ const STATUS_TONE: Record<string, Tone> = {
   IN_PROGRESS: "blue",
   DONE: "green",
   MAINTENANCE_REPORTED: "red",
+  // Account
+  ACTIVE: "green",
+  SUSPENDED: "red",
 };
 
 export function StatusBadge({ status }: { status: string }) {

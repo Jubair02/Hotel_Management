@@ -14,6 +14,13 @@ enum Role {
   HOUSEKEEPING
 }
 
+/// Whether an account may be used at all. A SUSPENDED account cannot sign
+/// in, and any session it still holds is revoked on its next request.
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 enum RoomType {
   SINGLE
   DOUBLE
@@ -66,7 +73,8 @@ model User {
   email    String @unique
   password String
   phone    String?
-  role     Role   @default(GUEST)
+  role     Role       @default(GUEST)
+  status   UserStatus @default(ACTIVE)
 
   bookings          Booking[]
   housekeepingTasks HousekeepingTask[] @relation("AssignedTasks")

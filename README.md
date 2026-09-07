@@ -46,7 +46,7 @@ Open http://localhost:3000.
 
 ## Admin pages
 
-`/admin` dashboard · `/admin/rooms` · `/admin/bookings` · `/admin/payments` (ledger with status/method/date filters and totals) · `/admin/guests` (guest directory with stays, spend, in-house/upcoming) · `/admin/reports` (nightly occupancy, daily revenue, bookings by status, room-type demand — server-rendered SVG, with a table view) · `/admin/staff`.
+`/admin` dashboard · `/admin/rooms` · `/admin/bookings` · `/admin/payments` (ledger with status/method/date filters and totals) · `/admin/guests` (guest directory with stays, spend, in-house/upcoming) · `/admin/reports` (nightly occupancy, daily revenue, bookings by status, room-type demand — server-rendered SVG, with a table view) · `/admin/staff` (team list, plus `/admin/staff/new` and `/admin/staff/:id/edit` for the full account editor).
 
 Every route segment ships a `loading.tsx` skeleton, so navigation paints immediately while the server renders.
 
@@ -64,7 +64,10 @@ Check-out day is exclusive, so back-to-back stays are allowed. Booking creation 
 
 - **JWT sessions** (jose, HS256) in an `httpOnly` cookie — no tokens in localStorage.
 - **Two RBAC layers**: `src/middleware.ts` gates the dashboard pages, and every API handler independently verifies the JWT + role via `requireAuth()` (`src/lib/guard.ts`). Frontend protection alone is never trusted.
-- Public registration always creates `GUEST`. Staff accounts are created, and any user's role changed, from **Admin → Staff** (`/admin/staff`, backed by `/api/users`). Tokens are **revocable**: `requireAuth()` (API) and each signed-in section's layout (pages) re-check the account against the database, and a token whose role no longer matches — or whose account is gone — is rejected with a 401 and the cookie cleared. Changing someone's role therefore signs them out everywhere at once.
+- Public registration always creates `GUEST`. Staff accounts are created and fully edited from **Admin → Staff** (`/admin/staff`, backed by `/api/users`): name, sign-in email, phone, role, account status and a password reset. An admin cannot change their own role or suspend themselves, and the last active admin cannot be demoted or suspended.
+- **Account status** (`UserStatus`): a `SUSPENDED` account cannot sign in (403 after a *correct* password, so the message leaks nothing) and its open sessions end at once. Accounts are never deleted — booking and housekeeping history hangs off them — so suspension is how access is withdrawn.
+- Tokens are **revocable**: `requireAuth()` (API) and each signed-in section's layout (pages) re-check the token against the live row, and one whose role, email or status no longer matches — or whose account is gone — is rejected with a 401 and the cookie cleared. Changing a role or email, or suspending an account, therefore signs that person out everywhere at once. A password reset does not (there is no token version yet).
+- Email addresses are stored lowercased on every write path, because sign-in looks them up lowercased.
 - `?next=` after sign-in only accepts same-site paths (`safeNext()`), so a crafted login link cannot redirect off-site.
 - List endpoints validate their query strings (`?status=`, `?type=`, `?date=`) with the same zod schemas as request bodies — an unknown value is a 400, not a 500.
 - Passwords hashed with bcrypt; minimum 8 characters.
@@ -80,7 +83,7 @@ GET|PATCH|DELETE /api/rooms/:id                POST /api/rooms            (admin
 POST|GET /api/bookings                         GET|PATCH /api/bookings/:id
 POST  /api/bookings/:id/cancel | check-in | check-out | pay
 POST  /api/payments/:id/ipn                    POST /api/payments/:id/mark-paid
-GET|POST /api/users                            PATCH /api/users/:id       (admin)
+GET|POST /api/users                            GET|PATCH /api/users/:id   (admin)
 GET   /api/housekeeping/tasks                  PATCH /api/housekeeping/tasks/:id
 POST  /api/housekeeping/tasks/:id/complete
 ```

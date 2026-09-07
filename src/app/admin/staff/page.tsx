@@ -11,6 +11,16 @@ export const dynamic = "force-dynamic";
 
 const ROLE_ORDER = ["ADMIN", "RECEPTIONIST", "HOUSEKEEPING"] as const;
 
+const USER_FIELDS = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  role: true,
+  status: true,
+  createdAt: true,
+} as const;
+
 type Search = Promise<{ q?: string }>;
 
 export default async function AdminStaffPage({
@@ -25,7 +35,7 @@ export default async function AdminStaffPage({
   const [staff, matches] = await Promise.all([
     prisma.user.findMany({
       where: { role: { in: [...ROLE_ORDER] } },
-      select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true },
+      select: USER_FIELDS,
       orderBy: [{ name: "asc" }],
     }),
     query
@@ -36,7 +46,7 @@ export default async function AdminStaffPage({
               { email: { contains: query, mode: "insensitive" } },
             ],
           },
-          select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true },
+          select: USER_FIELDS,
           orderBy: [{ name: "asc" }],
           take: 20,
         })
@@ -49,16 +59,18 @@ export default async function AdminStaffPage({
       ROLE_ORDER.indexOf(b.role as (typeof ROLE_ORDER)[number])
   );
   const counts = ROLE_ORDER.map((role) => ({
-    role,
-    count: staff.filter((u) => u.role === role).length,
+    label: role === "ADMIN" ? "Admins" : role === "RECEPTIONIST" ? "Reception" : "Housekeeping",
+    value: staff.filter((u) => u.role === role && u.status === "ACTIVE").length,
   }));
+  const suspended = staff.filter((u) => u.status === "SUSPENDED").length;
 
   function UserRow({ u }: { u: (typeof staff)[number] }) {
     const isSelf = u.id === session?.sub;
+    const off = u.status === "SUSPENDED";
     return (
-      <tr className="border-b border-sand-100 last:border-0 align-top">
+      <tr className={`border-b border-sand-100 align-top last:border-0 ${off ? "bg-sand-50/60" : ""}`}>
         <td className="px-4 py-3">
-          <p className="font-medium">
+          <p className={`font-medium ${off ? "text-ink-600" : ""}`}>
             {u.name}
             {isSelf && (
               <span className="ml-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-400">
@@ -72,11 +84,14 @@ export default async function AdminStaffPage({
         <td className="px-4 py-3">
           <StatusBadge status={u.role} />
         </td>
+        <td className="px-4 py-3">
+          <StatusBadge status={u.status} />
+        </td>
         <td className="whitespace-nowrap px-4 py-3 text-ink-600 [font-variant-numeric:tabular-nums]">
           {formatDate(u.createdAt)}
         </td>
         <td className="px-4 py-3">
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-start justify-end gap-2">
             <RoleSelect
               userId={u.id}
               role={u.role}
@@ -84,6 +99,12 @@ export default async function AdminStaffPage({
               disabled={isSelf}
               disabledReason={isSelf ? "Ask another admin to change your role" : undefined}
             />
+            <Link
+              href={`/admin/staff/${u.id}/edit`}
+              className="rounded-md border border-sand-300 bg-white px-3 py-1.5 text-sm font-medium text-ink-900 transition-colors hover:border-pine-700 hover:text-pine-800"
+            >
+              Edit
+            </Link>
           </div>
         </td>
       </tr>
@@ -99,8 +120,9 @@ export default async function AdminStaffPage({
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Phone</th>
               <th className="px-4 py-3 font-semibold">Role</th>
+              <th className="px-4 py-3 font-semibold">Account</th>
               <th className="px-4 py-3 font-semibold">Joined</th>
-              <th className="px-4 py-3 font-semibold text-right">Change role</th>
+              <th className="px-4 py-3 font-semibold text-right">Manage</th>
             </tr>
           </thead>
           <tbody>
@@ -109,7 +131,7 @@ export default async function AdminStaffPage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-ink-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-ink-400">
                   {empty}
                 </td>
               </tr>
@@ -136,18 +158,14 @@ export default async function AdminStaffPage({
       </div>
       <SectionNav items={ADMIN_NAV} active="/admin/staff" />
 
-      <div className="mt-8 grid max-w-lg grid-cols-3 gap-4">
-        {counts.map((c) => (
-          <div key={c.role} className="rounded-xl border border-sand-200 bg-white p-4">
+      <div className="mt-8 grid max-w-2xl grid-cols-2 gap-4 sm:grid-cols-4">
+        {[...counts, { label: "Suspended", value: suspended }].map((c) => (
+          <div key={c.label} className="rounded-xl border border-sand-200 bg-white p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-400">
-              {c.role === "ADMIN"
-                ? "Admins"
-                : c.role === "RECEPTIONIST"
-                  ? "Reception"
-                  : "Housekeeping"}
+              {c.label}
             </p>
             <p className="mt-1 font-display text-2xl text-pine-900 [font-variant-numeric:tabular-nums]">
-              {c.count}
+              {c.value}
             </p>
           </div>
         ))}
@@ -155,10 +173,11 @@ export default async function AdminStaffPage({
 
       <section className="mt-10">
         <h2 className="font-display text-xl text-pine-900">The team</h2>
-        <p className="text-sm text-ink-600">
-          Change a role from the dropdown. Setting it to Guest removes someone
-          from staff without deleting their account. People see their new
-          dashboard after they sign in again.
+        <p className="max-w-3xl text-sm text-ink-600">
+          Edit opens the full account — name, sign-in email, phone, role, status
+          and a password reset. The dropdown is a shortcut for role alone.
+          Changing a role, changing an email or suspending an account signs that
+          person out straight away.
         </p>
         <div className="mt-3">
           <Table rows={sortedStaff} empty="No staff accounts yet — add the first one." />
@@ -166,10 +185,10 @@ export default async function AdminStaffPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl text-pine-900">Promote an existing account</h2>
+        <h2 className="font-display text-xl text-pine-900">Find any account</h2>
         <p className="text-sm text-ink-600">
-          Someone already registered as a guest? Find them by name or email and
-          give them a staff role.
+          Search every account, guests included — give someone a staff role, or
+          open their record to edit it.
         </p>
         <form method="get" className="mt-3 flex max-w-md gap-2">
           <input

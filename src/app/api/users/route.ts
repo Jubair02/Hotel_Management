@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/guard";
-import { createStaffSchema, roleValues } from "@/lib/validation";
-
-const PUBLIC_USER = {
-  id: true,
-  name: true,
-  email: true,
-  phone: true,
-  role: true,
-  createdAt: true,
-} satisfies Prisma.UserSelect;
+import { createStaffSchema, roleValues, userStatusValues } from "@/lib/validation";
+import { PUBLIC_USER } from "@/lib/users";
 
 /**
  * GET /api/users (ADMIN) — list accounts.
  *   ?role=RECEPTIONIST   filter by role
+ *   ?status=SUSPENDED    filter by account status
  *   ?q=rafiq             search name / email
  * Passwords are never returned.
  */
@@ -25,6 +17,7 @@ export async function GET(req: NextRequest) {
   if (error) return error;
 
   const { searchParams } = req.nextUrl;
+
   const roleParam = searchParams.get("role");
   const role = roleParam ? roleValues.find((r) => r === roleParam) : undefined;
   if (roleParam && !role) {
@@ -33,11 +26,24 @@ export async function GET(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const statusParam = searchParams.get("status");
+  const status = statusParam
+    ? userStatusValues.find((s) => s === statusParam)
+    : undefined;
+  if (statusParam && !status) {
+    return NextResponse.json(
+      { error: `Invalid status: expected one of ${userStatusValues.join(", ")}` },
+      { status: 400 }
+    );
+  }
+
   const q = searchParams.get("q")?.trim();
 
   const users = await prisma.user.findMany({
     where: {
       ...(role ? { role } : {}),
+      ...(status ? { status } : {}),
       ...(q
         ? {
             OR: [
@@ -80,7 +86,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "An account with this email already exists — change its role from the staff list instead",
+          "An account with this email already exists — edit that account from the staff list instead",
       },
       { status: 409 }
     );
